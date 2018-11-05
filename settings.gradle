@@ -1,1 +1,1 @@
-include ':side-slide-pane-view'
+include ':side-slide-pane-view', ':test-app'

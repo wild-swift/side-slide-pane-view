@@ -63,6 +63,7 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
     private void init() {
         detector = new GestureDetector(getContext(), this);
         scroller = new Scroller(getContext());
+        setChildrenDrawingOrderEnabled(true);
     }
 
     @Override
@@ -101,6 +102,14 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
         leftViewHide = true;
         rightViewHide = true;
         centerViewOffset = 0;
+    }
+
+    @Override
+    protected int getChildDrawingOrder(int childCount, int i) {
+        if (i == childCount - 1) return indexOfChild(centerView);
+        if (i == 0) return leftView != null?indexOfChild(leftView):indexOfChild(rightView);
+        if (i == 1) return indexOfChild(rightView);
+        return -1;
     }
 
     @Override
