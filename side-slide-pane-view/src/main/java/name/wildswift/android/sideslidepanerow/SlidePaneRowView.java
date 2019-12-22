@@ -18,6 +18,8 @@ package name.wildswift.android.sideslidepanerow;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -34,6 +36,9 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
     private View rightView;
     private View centerView;
 
+    private boolean slideLeftEnabled = true;
+    private boolean slideRightEnabled = true;
+
     private boolean leftViewHide;
     private boolean rightViewHide;
     private int centerViewOffset;
@@ -49,10 +54,19 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
             moveCenterViewTo(scroller.getCurrX());
             if (!scroller.isFinished()) {
                 post(this);
+            } else if (onSideOpenListener != null){
+                if (centerViewOffset == 0) {
+                    onSideOpenListener.onClose(SlidePaneRowView.this);
+                } else if (centerViewOffset > 0) {
+                    onSideOpenListener.onLeftOpen(SlidePaneRowView.this, centerViewOffset);
+                } else {
+                    onSideOpenListener.onRightOpen(SlidePaneRowView.this, -centerViewOffset);
+                }
             }
         }
     };
 
+    private OnSideOpenListener onSideOpenListener = null;
 
     public SlidePaneRowView(Context context) {
         super(context);
@@ -76,9 +90,33 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
     }
 
     private void init() {
-        detector = new GestureDetector(getContext(), this);
+        detector = new GestureDetector(getContext(), this, new Handler(Looper.getMainLooper()));
         scroller = new Scroller(getContext());
         setChildrenDrawingOrderEnabled(true);
+    }
+
+    public boolean isSlideLeftEnabled() {
+        return slideLeftEnabled;
+    }
+
+    public void setSlideLeftEnabled(boolean slideLeftEnabled) {
+        this.slideLeftEnabled = slideLeftEnabled;
+    }
+
+    public boolean isSlideRightEnabled() {
+        return slideRightEnabled;
+    }
+
+    public void setSlideRightEnabled(boolean slideRightEnabled) {
+        this.slideRightEnabled = slideRightEnabled;
+    }
+
+    public OnSideOpenListener getListener() {
+        return onSideOpenListener;
+    }
+
+    public void setOnSideOpenListener(OnSideOpenListener onSideOpenListener) {
+        this.onSideOpenListener = onSideOpenListener;
     }
 
     @Override
@@ -116,7 +154,7 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
 
         leftViewHide = true;
         rightViewHide = true;
-        centerViewOffset = 0;
+        moveViewToAnchorPosition();
     }
 
     @Override
@@ -198,7 +236,7 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
             if (Math.abs(distanceY) > Math.abs(distanceX)) {
                 currentMode = Mode.none;
             } else if (centerViewOffset < 0 || centerViewOffset == 0 && distanceX > 0) {
-                if (rightView != null) {
+                if (rightView != null && slideLeftEnabled) {
                     currentMode = Mode.rightOpen;
                     requestDisallowInterceptTouchEvent(true);
                     if (rightViewHide) {
@@ -213,7 +251,7 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
                     currentMode = Mode.none;
                 }
             } else {
-                if (leftView != null) {
+                if (leftView != null && slideRightEnabled) {
                     currentMode = Mode.leftOpen;
                     requestDisallowInterceptTouchEvent(true);
                     if (leftViewHide) {
@@ -320,5 +358,11 @@ public class SlidePaneRowView extends FrameLayout implements GestureDetector.OnG
 
     private enum Mode {
         none, leftOpen, rightOpen
+    }
+
+    public interface OnSideOpenListener {
+        void onLeftOpen(SlidePaneRowView owner, int size);
+        void onRightOpen(SlidePaneRowView owner, int size);
+        void onClose(SlidePaneRowView owner);
     }
 }

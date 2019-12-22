@@ -17,6 +17,9 @@ package name.wildswift.testapp;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+
+import name.wildswift.android.sideslidepanerow.SlidePaneRowView;
 
 public class MainActivity extends Activity {
 
@@ -24,5 +27,22 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ((SlidePaneRowView) findViewById(R.id.test)).setSlideRightEnabled(false);
+        ((SlidePaneRowView) findViewById(R.id.test)).setOnSideOpenListener(new SlidePaneRowView.OnSideOpenListener() {
+            @Override
+            public void onLeftOpen(SlidePaneRowView owner, int size) {
+                Log.d("MainActivity", "onLeftOpen size = " + size);
+            }
+
+            @Override
+            public void onRightOpen(SlidePaneRowView owner, int size) {
+                Log.d("MainActivity", "onRightOpen size = " + size);
+            }
+
+            @Override
+            public void onClose(SlidePaneRowView owner) {
+                Log.d("MainActivity", "onClose");
+            }
+        });
     }
 }
